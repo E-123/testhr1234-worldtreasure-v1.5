@@ -1,5 +1,6 @@
 // @ts-nocheck
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Upload, Loader2, X } from "lucide-react";
 import { externalSupabase as supabase } from "@/lib/external-supabase";
 import { useLang } from "@/lib/i18n";
@@ -23,6 +24,7 @@ const [form, setForm] = useState({ ...EMPTY, ...(initial || {}) });
 const [uploading, setUploading] = useState(false);
 const [saving, setSaving] = useState(false);
 const [error, setError] = useState("");
+const fileInput = useRef(null);
 
 const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -72,20 +74,21 @@ return (
 <form onSubmit={save} className="bg-[#FDFCF0] border border-[#B8934E]/30 rounded-sm p-6 md:p-8 space-y-5">
 <div className="flex items-center justify-between">
 <h3 className="font-serif-disp text-xl text-[#8B0000]">{initial?.id ? L("编辑瑰宝", "Edit Treasure", "Modifier") : L("新增瑰宝", "Add Treasure", "Ajouter")}</h3>
-<button type="button" onClick={onCancel} className="text-[#1A1A1A]/40 hover:text-[#8B0000]"><X size={20} /></button>
+<Button type="button" variant="adminOutline" size="icon" onClick={onCancel} aria-label={L("关闭编辑", "Close editor", "Fermer")}><X size={20} /></Button>
 </div>
 
 <div>
 <span className={labelCls}>{L("图片", "Image", "Image")}</span>
-<div className="flex items-start gap-4">
-<div className="w-28 h-28 shrink-0 rounded-sm overflow-hidden bg-[#1A1A1A] flex items-center justify-center">
-{form.image_url ? <img src={form.image_url} alt="" className="w-full h-full object-cover" /> : <Upload size={22} className="text-[#FDFCF0]/40" />}
+<div className="flex flex-wrap items-start gap-4">
+<div className="wt-upload-preview w-28 h-28 shrink-0 rounded-sm bg-admin-ink flex items-center justify-center" aria-busy={uploading}>
+{form.image_url ? <img key={form.image_url} src={form.image_url} alt="" className="w-full h-full object-cover" /> : <Upload size={22} className="text-admin-paper/40" />}
+{uploading && <div className="wt-upload-overlay"><Loader2 size={22} className="animate-spin" aria-hidden="true" /></div>}
 </div>
-<label className="inline-flex items-center gap-2 cursor-pointer border border-[#B8934E]/50 text-[#8B0000] px-4 py-2.5 text-xs tracking-widest uppercase rounded-sm hover:bg-[#B8934E]/10 transition-colors">
+<Button type="button" variant="adminOutline" className="min-w-36" disabled={uploading} aria-busy={uploading} onClick={() => fileInput.current?.click()}>
 {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-{uploading ? L("上传中…", "Uploading…", "Téléversement…") : L("上传图片", "Upload Image", "Téléverser")}
-<input type="file" accept="image/*" onChange={onFile} className="hidden" disabled={uploading} />
-</label>
+<span role="status">{uploading ? L("上传中…", "Uploading…", "Téléversement…") : L("上传图片", "Upload Image", "Téléverser")}</span>
+</Button>
+<input ref={fileInput} type="file" accept="image/*" onChange={onFile} className="hidden" disabled={uploading} />
 </div>
 </div>
 
@@ -122,12 +125,13 @@ return (
 {error && <p className="text-xs text-[#8B0000]">{error}</p>}
 
 <div className="flex gap-3 pt-2">
-<button type="submit" disabled={saving || uploading || !form.image_url || !form.title_zh} className="bg-[#8B0000] text-[#FDFCF0] px-7 py-3 text-sm tracking-widest uppercase rounded-sm hover:bg-[#B8934E] transition-colors disabled:opacity-60">
+<Button type="submit" variant="admin" disabled={saving || uploading || !form.image_url || !form.title_zh} className="px-7 min-w-28">
+{saving && <Loader2 className="animate-spin" />}
 {saving ? L("保存中…", "Saving…", "Enregistrement…") : L("保存", "Save", "Enregistrer")}
-</button>
-<button type="button" onClick={onCancel} className="border border-[#B8934E]/50 text-[#1A1A1A]/70 px-7 py-3 text-sm tracking-widest uppercase rounded-sm hover:bg-[#B8934E]/10 transition-colors">
+</Button>
+<Button type="button" variant="adminOutline" onClick={onCancel} className="px-7">
 {L("取消", "Cancel", "Annuler")}
-</button>
+</Button>
 </div>
 </form>
 );

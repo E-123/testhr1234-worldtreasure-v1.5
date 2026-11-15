@@ -34,3 +34,4 @@ use the editor.
 - External DB client lives in src/lib/external-supabase.ts as `externalSupabase`; it is separate from the Cloud client so existing pages keep working.
 - Admin content editors use the external client's token-validated, allowlisted RPCs; additive SQL stays in docs for user-run application to avoid mutating the wrong database.
 - Keep bundled three-language editor defaults in src/lib/admin-content.ts and seed SQL with literal copies; public reads retain existing content until external tables are available.
+- Keep shared press and upload-preview motion in global CSS and use Button with a referenced file input for upload triggers, so keyboard access and reduced-motion support remain consistent without changing storage logic.

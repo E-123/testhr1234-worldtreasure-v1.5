@@ -163,6 +163,32 @@ html { scroll-behavior: smooth; }
 .wt-img-glow:hover { filter: drop-shadow(0 0 10px rgba(184,147,78,0.4)); }
 ::selection { background: #8B0000; color: #FDFCF0; }
 
+/* Shared feedback keeps existing button layouts and upload destinations intact. */
+:where(button, [role="button"], .wt-upload-button) {
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, opacity 180ms ease, scale 140ms ease;
+}
+:where(button, [role="button"], .wt-upload-button):active:not(:disabled):not([aria-disabled="true"]) {
+  scale: 0.97;
+}
+.wt-upload-preview { position: relative; overflow: hidden; }
+.wt-upload-preview img { animation: wtImageIn 240ms ease-out both; }
+.wt-upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--color-admin-ink) 55%, transparent);
+  color: var(--color-admin-paper);
+}
+@keyframes wtImageIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  :where(button, [role="button"], .wt-upload-button) { transition: none; }
+  :where(button, [role="button"], .wt-upload-button):active { scale: 1; }
+  .wt-upload-preview img, .wt-fade-up, .wt-spin-slow, .animate-spin { animation: none; }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
