@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Save, X, Trash2, Pencil, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { externalSupabase } from "@/lib/external-supabase";
@@ -23,6 +23,8 @@ export default function ContentManager({ kind }: { kind: "about" | "news" | "con
   const [editing, setEditing] = useState<ContentRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const load = async () => {
     setLoading(true);
@@ -62,6 +64,7 @@ export default function ContentManager({ kind }: { kind: "about" | "news" | "con
   const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploading(true);
     setBusy(true); setMessage("");
     try {
       if (!file.type.startsWith("image/")) throw new Error("image");
@@ -70,7 +73,7 @@ export default function ContentManager({ kind }: { kind: "about" | "news" | "con
       if (error) throw error;
       set("image_url", externalSupabase.storage.from("treasures").getPublicUrl(path).data.publicUrl);
     } catch { setMessage(L("图片上传失败，请检查登录后重试。", "Upload failed. Check your session and retry.", "Échec du téléversement.")); }
-    finally { setBusy(false); e.target.value = ""; }
+    finally { setBusy(false); setUploading(false); e.target.value = ""; }
   };
   const renderValue = (value: any, onChange: (value: any) => void, key: string): React.ReactNode => {
     if (Array.isArray(value)) return <div className="space-y-3">{value.map((item, i) => <div key={i} className="flex gap-2 items-start"><div className="min-w-0 flex-1">{renderValue(item, v => onChange(value.map((old, n) => n === i ? v : old)), key)}</div><Button type="button" variant="adminOutline" size="icon" aria-label={L("移除条目", "Remove item", "Retirer")} onClick={() => onChange(value.filter((_, n) => n !== i))}><X /></Button></div>)}<Button type="button" variant="adminOutline" onClick={() => onChange([...value, typeof value[0] === "object" ? Object.fromEntries(Object.keys(value[0]).map(k => [k, ""])) : ""])}><Plus />{L("添加条目", "Add item", "Ajouter")}</Button></div>;
@@ -84,10 +87,10 @@ export default function ContentManager({ kind }: { kind: "about" | "news" | "con
     {loading ? <Loader2 className="animate-spin" /> : editing ? <form onSubmit={save} className="space-y-6">
       <div className="flex items-center justify-between gap-3"><h3 className="text-lg">{label(editing["section_key"] || "title")}</h3><Button type="button" variant="adminOutline" size="icon" aria-label={L("关闭编辑", "Close editor", "Fermer")} onClick={() => setEditing(null)}><X /></Button></div>
       <div className="grid lg:grid-cols-3 gap-8">{(["zh", "en", "fr"] as const).map(l => <div key={l} className="min-w-0 space-y-4"><h4 className="border-b border-admin-gold/40 pb-2">{{ zh: "中文", en: "English", fr: "Français" }[l]}</h4>{kind === "news" ? ["title", "cat", "excerpt", "body"].map(k => <label key={k} className="block space-y-1"><span className="text-xs text-admin-ink/60">{label(k)}</span>{renderValue(editing[`${k}_${l}`] || "", v => set(`${k}_${l}`, v), k)}</label>) : renderValue(editing[`content_${l}`] || {}, v => set(`content_${l}`, v), "content")}</div>)}</div>
-      <div className="space-y-3 max-w-xl"><label className="block text-sm">{L("图片链接", "Image URL", "URL de l'image")}<input className={`${input} mt-1`} value={editing["image_url"] || ""} onChange={e => set("image_url", e.target.value)} /></label>{editing["image_url"] && <img src={editing["image_url"]} alt="" className="w-40 aspect-[4/3] object-cover" />}<Button type="button" variant="adminOutline" asChild><label className="cursor-pointer"><Upload />{L("上传图片", "Upload Image", "Téléverser")}<input type="file" className="hidden" accept="image/*" disabled={busy} onChange={upload} /></label></Button>
+      <div className="space-y-3 max-w-xl"><label className="block text-sm">{L("图片链接", "Image URL", "URL de l'image")}<input className={`${input} mt-1`} value={editing["image_url"] || ""} onChange={e => set("image_url", e.target.value)} /></label>{(editing["image_url"] || uploading) && <div className="wt-upload-preview w-40 aspect-[4/3] rounded-sm bg-admin-gold/10" aria-busy={uploading}>{editing["image_url"] && <img key={editing["image_url"]} src={editing["image_url"]} alt="" className="w-full h-full object-cover" />}{uploading && <div className="wt-upload-overlay"><Loader2 className="animate-spin" aria-hidden="true" /></div>}</div>}<Button type="button" variant="adminOutline" className="min-w-36" disabled={busy} aria-busy={uploading} onClick={() => fileInput.current?.click()}>{uploading ? <Loader2 className="animate-spin" /> : <Upload />}<span role="status">{uploading ? L("上传中…", "Uploading…", "Téléversement…") : L("上传图片", "Upload Image", "Téléverser")}</span></Button><input ref={fileInput} type="file" className="hidden" accept="image/*" disabled={busy} onChange={upload} />
       {kind === "news" && <><label className="block text-sm">{L("发布日期", "Publication date", "Date de publication")}<input required type="date" className={`${input} mt-1`} value={editing["publication_date"]} onChange={e => set("publication_date", e.target.value)} /></label><label className="flex gap-2 text-sm"><input type="checkbox" checked={editing["homepage_featured"]} onChange={e => set("homepage_featured", e.target.checked)} />{L("首页显示", "Show on homepage", "Afficher à l'accueil")}</label></>}
       <label className="block text-sm">{L("排序", "Order", "Ordre")}<input type="number" className={`${input} mt-1 max-w-32`} value={editing["display_order"]} onChange={e => set("display_order", Number(e.target.value))} /></label></div>
-      <div className="flex gap-3"><Button variant="admin" disabled={busy}><Save />{busy ? L("保存中…", "Saving…", "Enregistrement…") : L("保存", "Save", "Enregistrer")}</Button><Button type="button" variant="adminOutline" disabled={busy} onClick={() => setEditing(null)}>{L("取消", "Cancel", "Annuler")}</Button></div>
+      <div className="flex gap-3"><Button variant="admin" disabled={busy}>{busy && !uploading ? <Loader2 className="animate-spin" /> : <Save />}{busy && !uploading ? L("保存中…", "Saving…", "Enregistrement…") : L("保存", "Save", "Enregistrer")}</Button><Button type="button" variant="adminOutline" disabled={busy} onClick={() => setEditing(null)}>{L("取消", "Cancel", "Annuler")}</Button></div>
     </form> : <div className="divide-y divide-admin-gold/25">{rows.map((row, i) => <div key={row["id"] || row["section_key"] || i} className="flex flex-wrap items-center justify-between gap-4 py-5"><div className="min-w-0 flex-1">{kind === "news" && <p className="text-xs text-admin-ink/50">{row["publication_date"]}</p>}<h3 className="break-words font-serif-disp text-xl">{kind === "news" ? row[`title_${lang}`] || row["title_zh"] : label(row["section_key"])}</h3></div><div className="flex gap-2"><Button variant="adminOutline" disabled={busy} onClick={() => { setMessage(""); setEditing(structuredClone(row)); }}><Pencil />{L("编辑", "Edit", "Modifier")}</Button>{kind === "news" && <Button variant="adminOutline" size="icon" disabled={busy || !row["id"]} aria-label={L("删除新闻", "Delete news", "Supprimer")} onClick={() => void remove(row)}><Trash2 /></Button>}</div></div>)}</div>}
   </section>;
 }
