@@ -9,6 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        admin: "bg-admin-accent text-admin-paper hover:bg-admin-gold rounded-sm",
+        adminOutline: "border border-admin-gold/40 text-admin-ink bg-transparent hover:bg-admin-gold/10 rounded-sm",
         default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:

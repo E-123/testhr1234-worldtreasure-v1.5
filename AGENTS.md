@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Keep mobile navigation in the existing header with bounded scrolling and explicit dismissal; this preserves the original layout while keeping every link reachable.
+- Treat the external database design as unapplied until a supported target connection exists; never apply external-project changes to the linked Cloud database instead.
+- External DB client lives in src/lib/external-supabase.ts as `externalSupabase`; it is separate from the Cloud client so existing pages keep working.
+- Admin content editors use the external client's token-validated, allowlisted RPCs; additive SQL stays in docs for user-run application to avoid mutating the wrong database.
+- Keep bundled three-language editor defaults in src/lib/admin-content.ts and seed SQL with literal copies; public reads retain existing content until external tables are available.
