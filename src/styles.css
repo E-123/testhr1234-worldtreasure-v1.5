@@ -30,6 +30,13 @@
  */
 
 @theme inline {
+  --color-admin-paper: oklch(0.989 0.015 101);
+  --color-admin-ink: oklch(0.218 0 0);
+  --color-admin-accent: oklch(0.397 0.163 29);
+  --color-admin-gold: oklch(0.683 0.101 82);
+  --color-navigation-ink: #1A1A1A;
+  --color-navigation-paper: #FDFCF0;
+  --color-navigation-gold: #B8934E;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -142,6 +149,19 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
+
+html { scroll-behavior: smooth; }
+.font-serif-disp { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
+.font-zh-serif { font-family: 'Noto Serif SC', 'Cormorant Garamond', serif; }
+.font-body-wt { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+.wt-hairline { background: linear-gradient(90deg, transparent, #B8934E, transparent); height: 1px; border: none; }
+.wt-fade-up { animation: wtFadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes wtFadeUp { from { opacity: 0; transform: translateY(24px);} to {opacity:1; transform:none;} }
+@keyframes wtSpinSlow { from { transform: rotate(0);} to { transform: rotate(360deg);} }
+.wt-spin-slow { animation: wtSpinSlow 60s linear infinite; }
+.wt-seal-shadow { filter: drop-shadow(0 0 12px rgba(184,147,78,0.35)); }
+.wt-img-glow:hover { filter: drop-shadow(0 0 10px rgba(184,147,78,0.4)); }
+::selection { background: #8B0000; color: #FDFCF0; }
 
 @layer base {
   * {
